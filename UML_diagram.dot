@@ -1,0 +1,51 @@
+digraph "orbiskdataapi UML diagram" {
+charset="utf-8"
+rankdir=BT
+center=true
+"0" [label="{DataLoader|\l|}", shape="record"];
+"1" [label="{Ingredient|category\lingredient_id\llabel\lname\l|}", shape="record"];
+"2" [label="{IngredientLoader|\l|create_ingredient(ingredient_id)\l}", shape="record"];
+"3" [label="{Picture|config_dict\lis_discard\lpicture_id\lclient\ldistance\lstate\ltime_capture\ltime_sync\lweight\l|create_polygons()\l}", shape="record"];
+"4" [label="{PictureLoader|\l|create_picture(picture_id)\l}", shape="record"];
+"5" [label="{PictureRenderer|\l|pic_weight_render(picid_weight, interactive)\lrender()\lrender_as_array()\lrender_with_polygons()\l}", shape="record"];
+"6" [label="{PictureSurroundings|\l|get_surround_pictures(n_pictures)\lget_surround_pictures_collage(n_pictures)\lplot_weight_around_picture(tminus, tplus)\l}", shape="record"];
+"7" [label="{Polygon|area\lclient_id\lconfig_dict\lcoordinates\limg_id\lingredient\lingredient_id\lpolygon_id\lweight\l|}", shape="record"];
+"8" [label="{PolygonLoader|\l|create_polygon(polygon_id)\lcreate_polygons_from_picture(picture_id)\l}", shape="record"];
+"9" [label="{PolygonRenderer|\l|coords_plot()\lembed_in_picture()\lsegment()\lsegment_as_array()\l}", shape="record"];
+"10" [label="{Client|config_dict\lclient_id\lreporting_name\lstart_date\lclient_type\l|get_day_weights_table(start_date, end_date)\l}", shape="record"];
+"11" [label="{ClientLoader|\l|create_client(client_id)\l}", shape="record"];
+"12" [label="{Metadata|picture_id\ltype\lfield\lvalue\ltime\l|}", shape="record"];
+"13" [label="{MetadataLoader|\l|create_metadata(picture_id)\l}", shape="record"];
+"14" [label="{PIL.Image.Image}", shape="record"];
+"15" [label="{numpy.ndarray}", shape="record"];
+"16" [label="{matplotlib.figure.Figure}", shape="record"];
+// DataLoader descendents
+"0" -> "2" [arrowhead="empty", arrowtail="none"];
+"0" -> "4" [arrowhead="empty", arrowtail="none"];
+"0" -> "8" [arrowhead="empty", arrowtail="none"];
+"0" -> "11" [arrowhead="empty", arrowtail="none"];
+"0" -> "13" [arrowhead="empty", arrowtail="none"];
+// Loaders <<create>>
+"2" -> "1" [arrowhead="vee", arrowtail="none", label="<<create>>", style="dashed"];
+"4" -> "3" [arrowhead="vee", arrowtail="none", label="<<create>>", style="dashed"];
+"8" -> "7" [arrowhead="vee", arrowtail="none", label="<<create>>", style="dashed"];
+"11" -> "10" [arrowhead="vee", arrowtail="none", label="<<create>>", style="dashed"];
+"13" -> "12" [arrowhead="vee", arrowtail="none", label="<<create>>", style="dashed"];
+// To Picture
+"10" -> "3" [arrowhead="odiamond", arrowtail="none", label="ingredient", headlabel="0..*", taillabel="1", style="solid", weight=2.0];
+// To polygon
+"1" -> "7" [arrowhead="odiamond", arrowtail="none", label="ingredient", headlabel="    0..*", taillabel="1", style="solid"];
+"3" -> "7" [arrowhead="vee", arrowtail="none", label="<<create>>", style="dashed", weight=3.0];
+// To polygon renderer
+"7" -> "9" [arrowhead="vee", arrowtail="none", label="<<use>>", style="dashed"];
+// To picture renderer
+"3" -> "5" [arrowhead="vee", arrowtail="none", label="<<use>>", style="dashed"];
+// To picture surroundings
+"3" -> "6" [arrowhead="vee", arrowtail="none", label="<<use>>", style="dashed"];
+// To Image and ndarray
+"9" -> {"14", "15"} [arrowhead="vee", arrowtail="none", label="<<create>>", style="dashed", weight=2.0];
+"5" -> {"14", "15"} [arrowhead="vee", arrowtail="none", label="<<create>>", style="dashed", weight=2.0];
+// To Image, Figure and Picture
+"6" -> {"14", "16", "3"} [arrowhead="vee", arrowtail="none", label="<<create>>", style="dashed", weight=2.0];
+// "6" -> "3" [arrowhead="vee", arrowtail="none", label="<<create>>", style="dashed", weight=2.0];
+}

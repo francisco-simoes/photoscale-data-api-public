@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<title>README.html</title>
+<meta http-equiv="Content-Type" content="application/xhtml+xml;charset=utf-8"/>
+<link rel="stylesheet" type="text/css" media="all" href="https://cdn.jsdelivr.net/npm/github-markdown-css/github-markdown.min.css"  />
+<link rel="stylesheet" type="text/css" media="all" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release/build/styles/github.min.css"  /><meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'><style> body { box-sizing: border-box; max-width: 740px; width: 100%; margin: 40px auto; padding: 0 10px; } </style><script id='MathJax-script' async src='https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js'></script><script src='https://cdn.jsdelivr.net/gh/highlightjs/cdn-release/build/highlight.min.js'></script><script>document.addEventListener('DOMContentLoaded', () => { document.body.classList.add('markdown-body'); document.querySelectorAll('pre[lang] > code').forEach((code) => { code.classList.add(code.parentElement.lang); }); document.querySelectorAll('pre > code').forEach((code) => { hljs.highlightBlock(code); }); });</script>
+</head>
+
+<body>
+
+<h1 id="the-photoscaledataapi-package---publicly-available-snapshot-of-v2.3">The photoscaledataapi package - publicly available snapshot of v2.3</h1>
+<p>This package was developed for a company, which we will call “Photoscale”. Our descriptions will be slightly vague for anonymity reasons.</p>
+<p>The user of the company’s product is supposed to take pictures of objects of which they want to register the weight, and then put the object on a container which is on a scale. The company’s software segments a polygon with the object from the image, classifies the object and attributes it a weight using the scale weight fluctuations. If the picture does not contain any classifiable object, it is labelled as an “invalid” or “discarded” picture.</p>
+<p>This package helps the user easily fetch images, polygons, weight curves and related info from Photoscale’s databases, making it very easy to do all kinds of statistical studies with the data.</p>
+<p>With this package you can: - Fetch all the information you (usually) need for analysing Photoscale’s data from the comfort of Python. - Seamlessly visualise plots showing the weight curve in a time interval around a certain picture, and the other pictures taken in that interval. - Seamlessly visualise pictures, segmented polygons, and pipe the corresponding arrays to your image processing scripts.</p>
+<h2 id="about-this-public-version-of-the-package">About this public version of the package</h2>
+<p>You cannot use this package as it stands unless you are an Photoscale’s employee, of course. For security reasons, every detail that could reveal the infrastructure used by the company was removed. Since the code was intertwined with that infrastructure, only a high-level README can be shown. Hence this public version of the package should be seen as a portfolio repository with a high-level description of what the actual code does, and which partially showcases how this package is used in practice. It may also serve as inspiration to someone also working with computer vision problems and trying to structure a similar package.</p>
+<h2 id="pre-requisites">Pre-requisites</h2>
+<p>Access to the different Photoscale databases.</p>
+<h3 id="installation-would-only-work-for-the-non-public-package">Installation (Would only work for the non-public package)</h3>
+<p>The <code>photoscaledataapi</code> package can be installed with <code>pipenv</code> by running:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pipenv</span> install <span class="st">&quot;git+ssh://git@github.com:francisco-simoes/photoscale-data-api-public.git@dev#egg=photoscaledataapi&quot;</span></span></code></pre></div>
+<p>where instead of <code>dev</code> you may write any branch of your choosing.</p>
+<h2 id="using-the-package">Using the package</h2>
+<p>There are three types of classes: <em>data classes</em>, <em>loading classes</em> and <em>analysis classes</em>. Bellow you can see a UML-like diagram scheme with all classes and their interactions.</p>
+<h3 id="class-diagram">Class diagram</h3>
+<p align="center">
+<img src="UML_diagram.svg" alt="hi" class="inline"/>
+</p>
+<h3 id="data-classes-and-loading-classes">Data classes and loading classes</h3>
+<p>Each Photoscale data structure (picture, polygon, ingredient,… ) is represented by a class. The most common way to instantiate an object of one of these classes is by using a <code>DataLoader</code> instance, which in turn needs a <code>config_dict</code> . For example, to instantiate a <code>Picture</code> object and see if it is a discard or not, one may do this:</p>
+<p><em>Note:</em> We will use the following stock photo + polygon (in yellow) for our examples:</p>
+<p align="center">
+<img src="./Images/grapes_with_pol.jpg" alt="grapes" style="width:300px;"/>
+</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> List  <span class="co"># Not necessary, but will use here for clarity of the types being used</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> photoscaledataapi <span class="im">import</span> DataLoader, Picture, Polygon</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>picture_id: <span class="bu">str</span> <span class="op">=</span> <span class="op">&lt;</span>PICTURE_ID_EXAMPLE<span class="op">&gt;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>CONFIG_DICT <span class="op">=</span> {</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;database&quot;</span>: <span class="op">&lt;</span>DATABASE_NAME<span class="op">&gt;</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;user&quot;</span>: <span class="op">&lt;</span>USER_NAME<span class="op">&gt;</span>,</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;password&quot;</span>: <span class="op">&lt;</span>PASSWORD<span class="op">&gt;</span>,</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>loader <span class="op">=</span> DataLoader(CONFIG_DICT)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>pic: Picture <span class="op">=</span> loader.create_picture(picture_id)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(pic.is_discard)</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>[Out:] <span class="va">False</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(pic.ingredient.name)</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>[Out:] grapes</span></code></pre></div>
+<p>One may now re-utilise this <code>loader</code> to instantiate other classes. For example, one may want to know the weight of a certain polygon:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>pol: Polygon <span class="op">=</span> loader.create_polygon(<span class="op">&lt;</span>POLYGON_ID_EXAMPLE<span class="op">&gt;</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(pol.weight)  <span class="co"># In grams</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>[Out:] <span class="dv">217</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(pol.area)  <span class="co"># In pixels^2</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>[Out:] <span class="dv">1208230</span></span></code></pre></div>
+<p><em>Note:</em> Some attributes like <code>area</code> are not stored in the databases and so must be computed - <em>e.g.</em> the polygon area can be computed using the polygon coordinates. These attributes will actually be Python properties, so that they are computed only when requested.</p>
+<p>It is often useful to get all polygons in a picture. Here are two ways of doing that:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. From Picture instance</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>picture_id: <span class="bu">str</span> <span class="op">=</span> <span class="op">&lt;</span>PICTURE_ID_EXAMPLE<span class="op">&gt;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>pic: Picture <span class="op">=</span> loader.create_picture(picture_id)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>pols: List[Polygon] <span class="op">=</span> pic.create_polygons()</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Using picture_id directly</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>pols: List[Polygon] <span class="op">=</span> loader.create_polygons_from_picture(picture_id)</span></code></pre></div>
+<p>These few examples should be enough to understand how to use the data classes and the <code>DataLoader</code>. You may notice that there are other “loaders”: <code>PictureLoader</code>, <code>PolygonLoader</code>, etc. In general these shouldn’t be use directly: just use <code>DataLoader</code> instead. (Although you may want to use these other loader classes for type hints).</p>
+<h3 id="analysis-classes">Analysis classes</h3>
+<p>Very often we want to extract the array corresponding to a picture or a segmented polygon, to either take a look at the image or to use the resulting array in our code. We may also want to easily study the “surroundings” of a picture: how do the pictures taken right before and after our picture look like? What about the weight curve?</p>
+<p>This is where the analysis classes come in. In this version of the <code>photoscaledataapi</code>, these are: - The renderers (<code>PictureRenderer</code> and <code>PolygonRenderer</code>), that enable us to render pictures or (segmented) polygons (or superpositions of both) as PIL Images or numpy arrays. - The surroundings analyser (<code>PictureSurroundings</code>), which can be used to inspect the pictures and weight values in the “neighbourhood” of our picture. The analysis classes need to be fed with an instance of the appropriate data class, <em>e.g.</em> one must feed a <code>Picture</code> instance to <code>PictureRenderer</code> to instantiate it.</p>
+<p>As a simple example, one may want to see what a certain picture looks like, and where its polygons are localised. Let’s use the same <code>pic</code> as before:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> PIL <span class="im">import</span> Image  <span class="co"># Not necessary, but will use here for clarity of the types being used</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> photoscaledataapi <span class="im">import</span> PictureRenderer</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>renderer <span class="op">=</span> PictureRenderer(pic)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>img: Image <span class="op">=</span> renderer.render_with_polygons()</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>img.show()</span></code></pre></div>
+<p>This shows the picture with the polygon overlayed on top:</p>
+<p align="center">
+<img src="./Images/grapes_with_overlay.jpg" alt="grapes" style="width:300px;"/>
+</p>
+<p>It is also often useful to extract the segmented polygon:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>crop: Image <span class="op">=</span> renderer.segment()</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>crop.show()</span></code></pre></div>
+<p align="center">
+<img src="./Images/grapes_cropped.jpg" alt="grapes" style="width:300px;"/>
+</p>
+<p>If instead we want for example to analyse the scale weight curve between the times <code>picture_time - 10</code> and <code>picture_time + 15</code>:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib.figure <span class="im">import</span> Figure  <span class="co"># Not necessary, but will use here for clarity of the types being used</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> photoscaledataapi <span class="im">import</span> PictureSurroundings</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>analyser <span class="op">=</span> PictureSurroundings(pic)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>weight_plot: Figure <span class="op">=</span> analyser.plot_weight_around_picture(<span class="dv">10</span>, <span class="dv">15</span>)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>weight_plot.show()</span></code></pre></div>
+<p align="center">
+<img src="./Images/plotweight.png" alt="plot" style="width:900px;"/>
+</p>
+<h2 id="note-about-new-features">Note about new features</h2>
+<p>Other features were implemented after this “snapshot” of the package, from new classes to better weight exploration to the addition of plot elements to aid visualisation. We will not add them here, since the most important takeaway is package overall structure, which remains intact.</p>
+
+</body>
+</html>
