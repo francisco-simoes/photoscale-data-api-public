@@ -1,6 +1,6 @@
 # The photoscaledataapi package - publicly available snapshot of v2.3
 
-This package was developed for a company, which we will call "Photoscale".
+The Python package described below was developed for a company, which we will call "Photoscale".
 Our descriptions will be slightly vague for anonymity reasons.
 
 The user of the company's product is supposed to take pictures of objects (specifically "ingredients" (food) in the examples below, but can easily be generalised to other kinds of objects) of which they want to register the weight, and then put the object on a container which is on a scale.
